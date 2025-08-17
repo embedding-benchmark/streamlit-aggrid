@@ -1,218 +1,317 @@
-# streamlit-aggrid
+# Streamlit Aggrid SDK with Custom Link Header Component
 
-[![Open in Streamlit][share_badge]][share_link] [![GitHub][github_badge]][github_link] [![PyPI][pypi_badge]][pypi_link] [![Downloads][downloads_badge]][downloads_link]
-
-> [!IMPORTANT]
-> 💡 **Support the Development of streamlit-aggrid!**  
-> This project is the result of countless hours of dedication by a solo Python developer. If you find it useful, consider giving back to help keep it alive and thriving.  
-> 
-> ### Ways to Contribute:
-> - **[Donate via PayPal](https://www.paypal.com/donate?hosted_button_id=8HGLA4JZBYFPQ):** A quick and secure way to show your support.  
-> 
-> Every contribution, no matter the size, makes a difference and helps ensure the continued improvement of this project. Thank you for your generosity! 🙌
-
-> For sponsoring, development support, features prioritization you can [email me](mailto:pablo.fonseca+staggrid@gmail.com).
-
-[Live examples](https://staggrid-examples.streamlit.app/) and documentation on Streamlit Cloud.
+[English](#overview) | [中文](./README_ZH.md)
 
 ---
 
-**AgGrid** is an awesome grid for web frontend. More information in [https://www.ag-grid.com/](https://www.ag-grid.com/). Consider purchasing a license from Ag-Grid if you are going to use enterprise features!
+## Overview
 
-Current AgGrid version is [34.0.2](https://www.ag-grid.com/archive/34.0.2/)
+This SDK extends the `st-aggrid` library with a custom link header component that allows you to add clickable link icons to column headers. The component preserves all default `ag-grid` functionality including sorting, filtering, and resizing.
 
-# Install
+## Features
 
+- 🔗 **Custom Link Headers**: Add clickable link icons to column headers
+- 📊 **Full Grid Functionality**: Maintains sorting, filtering, and resizing capabilities
+- 🎯 **Event Isolation**: Clicking the link icon doesn't interfere with sorting/filtering
+- 📏 **Auto-Width Adjustment**: Automatically adjusts column width to fit header text
+- 🛠️ **Easy Integration**: Simple API for creating link-enabled columns
+- 🔧 **Enhanced Error Handling**: Robust error handling with multiple fallback strategies
+- 📦 **Cross-Platform**: Supports Windows, Linux, and macOS environments
+- ⚡ **Fast Build System**: Simplified, single-command build process
+
+## Building the SDK
+
+### Prerequisites
+
+- **Python 3.8+** (required)
+- **Node.js 14+** (optional, for frontend building)
+- **npm** or **yarn** (auto-detected if available)
+
+### Quick Build
+
+```bash
+# Complete build (frontend + Python package)
+python build_sdk.py
+
+# Python package only (skip frontend)
+python build_sdk.py --skip-frontend
+
+# View all options
+python build_sdk.py --help
 ```
-pip install streamlit-aggrid
 
+### Build Options
+
+| Option            | Description                    | Example                               |
+| ----------------- | ------------------------------ | ------------------------------------- |
+| `--skip-frontend` | Skip frontend build            | `python build_sdk.py --skip-frontend` |
+| `--skip-python`   | Skip Python package build      | `python build_sdk.py --skip-python`   |
+| `--strict`        | Stop on frontend build failure | `python build_sdk.py --strict`        |
+| `--help`, `-h`    | Show help message              | `python build_sdk.py --help`          |
+
+### What the Script Does
+
+1. **Environment Check**: Detects Python version and Node.js availability
+2. **Frontend Build**: If Node.js is available, automatically runs:
+   - `npm install` or `yarn install` (auto-detects based on lock files)
+   - `npm run build` or `yarn build`
+3. **Python Package Build**: Creates wheel and source distribution using:
+   - PEP 517 build system (preferred)
+   - Falls back to `setup.py` if needed
+
+### Build Output
+
+After successful build, you'll find in `dist/`:
+
+- `streamlit_aggrid-<version>-py3-none-any.whl`
+- `streamlit_aggrid-<version>.tar.gz`
+
+### Build Examples
+
+```bash
+# Standard build (recommended)
+python build_sdk.py
+# Output:
+# 🚀 Streamlit AgGrid SDK 快速构建
+# ✅ Python: 3.9.7
+# 📦 Node.js: v18.17.0
+# 🔧 使用 npm 构建前端...
+# ✅ 前端构建完成
+# ✅ Python包构建完成 (PEP 517)
+# 🎉 构建完成! 生成了 1 个文件:
+#   📦 streamlit_aggrid-1.1.7-py3-none-any.whl
+
+# If Node.js is not available
+python build_sdk.py
+# Output:
+# ✅ Python: 3.9.7
+# ⚠️ Node.js不可用，跳过前端构建
+# ✅ Python包构建完成 (PEP 517)
+
+# Python package only
+python build_sdk.py --skip-frontend
+# Output:
+# ✅ Python: 3.9.7
+# ⏭️ 跳过前端构建
+# ✅ Python包构建完成 (PEP 517)
 ```
 
-# Quick Use
+## Installation
 
-Create an example.py file
+```bash
+# Install from local wheel file
+pip install dist/*.whl
+```
+
+## Quick Start
 
 ```python
-from st_aggrid import AgGrid
+import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid.link_header_builder import create_link_column
 
-df = pd.read_csv('https://raw.githubusercontent.com/fivethirtyeight/data/master/airline-safety/airline-safety.csv')
-AgGrid(df)
+# Sample data
+data = {
+    'name': ['Alice', 'Bob', 'Charlie'],
+    'email': ['alice@example.com', 'bob@example.com', 'charlie@example.com'],
+    'github': ['alice-github', 'bob-github', 'charlie-github'],
+    'age': [25, 30, 35]
+}
+df = pd.DataFrame(data)
+
+# Create link columns
+email_column = create_link_column(
+    field='email',
+    header_name='Email',
+    url='mailto:{email}',
+    sortable=True,
+    filter=True
+)
+
+github_column = create_link_column(
+    field='github',
+    header_name='GitHub',
+    url='https://github.com/{github}',
+    sortable=True,
+    filter=True
+)
+
+# Build grid options
+gb = GridOptionsBuilder.from_dataframe(df)
+gb.configure_column('name', sortable=True, filter=True)
+gb.configure_column('age', sortable=True, filter=True)
+
+# Add link columns to grid options
+grid_options = gb.build()
+grid_options['columnDefs'].append(email_column)
+grid_options['columnDefs'].append(github_column)
+
+# Display the grid
+grid_response = AgGrid(
+    df,
+    gridOptions=grid_options,
+    data_return_mode='AS_INPUT',
+    update_mode='MODEL_CHANGED',
+    fit_columns_on_grid_load=True,
+    theme='streamlit'
+)
 ```
 
-Run :
+## API Reference
 
-```shell
-streamlit run example.py
+### `create_link_column(field, header_name, url, **kwargs)`
+
+Creates a column definition with a custom link header.
+
+**Parameters:**
+
+- `field` (str): Data field name
+- `header_name` (str): Column header name
+- `url` (str): URL template for the link (supports {field} placeholder)
+- `**kwargs`: Additional column configuration options
+
+**Returns:**
+
+- `dict`: Column definition dictionary
+
+### `create_link_columns(link_config, **default_kwargs)`
+
+Creates multiple link columns from a configuration dictionary.
+
+**Parameters:**
+
+- `link_config` (dict): Dictionary mapping field names to URLs
+- `**default_kwargs`: Default configuration for all columns
+
+**Returns:**
+
+- `dict`: Dictionary of column definitions
+
+### `add_link_headers_to_grid_options(grid_options, link_config, **default_kwargs)`
+
+Adds link column configurations to existing grid options.
+
+**Parameters:**
+
+- `grid_options` (dict): Existing grid options
+- `link_config` (dict): Dictionary mapping field names to URLs
+- `**default_kwargs`: Default configuration for all columns
+
+**Returns:**
+
+- `dict`: Updated grid options
+
+## Advanced Usage
+
+### Batch Column Creation
+
+```python
+# Define link configurations
+link_config = {
+    'email': 'mailto:{email}',
+    'website': 'https://{website}',
+    'github': 'https://github.com/{github}'
+}
+
+# Create all link columns at once
+link_columns = create_link_columns(link_config, sortable=True, filter=True)
+
+# Add to grid options
+for column_def in link_columns.values():
+    grid_options['columnDefs'].append(column_def)
 ```
 
-# Demo
+### Dynamic URL Generation
 
-Grid data is sent back to streamlit and can be reused in other components. In the example below a chart is updated on grid edition.
+```python
+# URL with dynamic field substitution
+email_column = create_link_column(
+    field='email',
+    header_name='Contact',
+    url='mailto:{email}?subject=Hello from {name}',
+    sortable=True,
+    filter=True
+)
+```
 
-![example image](https://github.com/PablocFonseca/streamlit-aggrid/raw/main/group_selection_example.gif)
+## Configuration Options
 
-# Development Notes
+All standard `ag-grid` column options are supported:
 
-Version 1.1.7
+- `sortable`: Enable/disable sorting
+- `filter`: Enable/disable filtering
+- `resizable`: Enable/disable column resizing
+- `suppressHeaderContextMenu`: Show/hide header context menu
+- `width`: Set column width
+- `minWidth`: Set minimum column width
+- `maxWidth`: Set maximum column width
 
-- Updates inner Ag-Grid to v. 34.0.2
-- Fixes a bug related to moving columns with grandTotalRow present
+## Examples
 
-Version 1.1.5
+See `test_streamlit_app.py` for a complete working example.
 
-- Fix licensing when not using License bundled with AgCharts.
-- Added option for fullscreen mode.
-- Refactored grid toolbar.
+## Troubleshooting
 
-Version 1.1.4
+### Build Issues
 
-- onGridReady Event fires when set in grid Options.
-- Fixes grid return when data input data is Json.
-- post1 fixes packaging bug caused by poetry update to 2.1.2
+**Issue**: Frontend build fails
 
-Version 1.1.3
+- Try building Python package only: `python build_sdk.py --skip-frontend`
+- Check if Node.js is properly installed: `node --version`
+- Verify npm/yarn is available: `npm --version` or `yarn --version`
 
-- fixes enterprise modules being enabled by default. (If using enterprise features, buy a license from Ag Grid.)
-- fixes grid initialization when neither data nor gridOptions are set.
-- 1.1.3.post1 fixes [#317](https://github.com/PablocFonseca/streamlit-aggrid/issues/317)
+**Issue**: "Package not found" errors
 
-Version 1.1.2
+- Ensure you're in the correct project directory
+- Check if `pyproject.toml` or `setup.py` exists
 
-- adds PR #308 - Callbacl functionality
+### Component Issues
 
-Version 1.1.1
+**Issue**: Link icons not showing
 
-- Solves [#306](https://github.com/PablocFonseca/streamlit-aggrid/issues/306) and [#305](https://github.com/PablocFonseca/streamlit-aggrid/issues/305)
+- Check if `create_link_column` function is imported correctly
+- Verify column definitions are properly added to `grid_options['columnDefs']`
+- Ensure the frontend build was successful and includes the latest components
 
-Version 1.1.0
+**Issue**: Sorting/filtering functionality lost
 
-- Updated AgGrid to version 32.3
-- Added partial support for the aggrid [Theming](https://www.ag-grid.com/javascript-data-grid/theming/) - Check [example](https://staggrid-examples.streamlit.app/Themes)
-- Cleaned project dependencies (Altair < 5)
+- Ensure `sortable=True` and `filter=True` are set in `create_link_column`
+- Check if `headerComponentParams` structure is used correctly
 
-Version 1.0.5
+**Issue**: Column width too narrow, text wrapping
 
-- Updated AgGrid to version 31.3
+- The component now automatically adjusts column width to fit text
+- If issues persist, manually set `minWidth` in column configuration:
+  ```python
+  column = create_link_column(
+      field='email',
+      header_name='Email Address',
+      url='mailto:{email}',
+      minWidth=150  # Set minimum width
+  )
+  ```
 
-Version 1.0.4
+**Issue**: Clicking links not responding
 
-- Added information on the event that triggered app rerun
+- Verify URL format is correct
+- Check browser console for JavaScript errors
+- Ensure URLs use proper format with field placeholders: `https://example.com/{field}`
 
-Version 1.0.2
+## Notes
 
-- Moved a lot of response processment to python side.
-- Changed grid return object.
-- Fix bugs and code cleanup.
+1. **URL Templates**: URLs support `{field}` placeholders that get replaced with actual data
+2. **Event Handling**: Clicking the 🔗 icon prevents event bubbling and won't trigger sorting
+3. **Auto-Width**: Component automatically adjusts column width to prevent text wrapping
+4. **Styling**: Link icons use default colors and maintain consistency with header text
+5. **Build System**: Fast, single-command build with automatic Node.js detection
+6. **Error Recovery**: Multiple fallback strategies ensure reliable package generation
+7. **Compatibility**: Fully compatible with all `ag-grid` functionality and modern browsers
 
-> [!WARNING]
-> v1.0.0 breaks compatibility with previous versions and many people reached me to say that it is unstable.  
-> Main changes are on gridReturn object as I'm moving heavy processment to python side.  
-> I'm working to stabilize it, if you find any issues, please open a topic on the issue tracker  
-> with a reproductile example, if possible.  
-> Meanwhile use the last v.0.3.4 if things are not working for you! I hope to have everything fixed soon.
+## Recent Updates (v1.1.7)
 
-Version 0.3.5
-
-- Merged many PR, thanks everybody.
-- Grid State can be saved and retrieved. Many people requested this one. Live Example [Here](https://staggrid-examples.streamlit.app/?example=%27Grid%20State%27)
-
-Version 0.3.4
-
-- Added quickfilter
-- Added Excel Export Module
-- Bugfixes (an probably introduced new ones :/)
-- Code cleanup
-- Updated Ag-Grit to 29.1.0 (including ag-grid-react) which will cause direct HTML returns to stop rendering ([#198](https://github.com/PablocFonseca/streamlit-aggrid/issues/198)). Use a [cellRenderer](https://www.ag-grid.com/javascript-data-grid/component-cell-renderer/) instead.
-
-Version 0.3.3
-
-- Fixes [#132](https://github.com/PablocFonseca/streamlit-aggrid/issues/132)
-- Fixes [#131](https://github.com/PablocFonseca/streamlit-aggrid/issues/131) and [#130](https://github.com/PablocFonseca/streamlit-aggrid/issues/130)
-- Added Sparklines [#118](https://github.com/PablocFonseca/streamlit-aggrid/issues/118)
-- Changed Grid Return to support [#117](https://github.com/PablocFonseca/streamlit-aggrid/issues/117)
-- Rebuilt streamlit theme
-
-Version 0.3.0
-
-- Merged some PR (Thanks everybody!) check PR at github!
-- Added class parsing in React Side, so more advanced CellRenderers can be used. (Thanks [kjakaitis](https://github.com/kjakaitis))
-- Added gridOptionsBuilder.configure_first_column_as_index() to, well, style the first columns as an index (MultiIndex to come!)
-- Improved serialization performance by using simpler pandas to_json method (PR #62, #85)
-- Added option to render plain json instead of pd.dataframes
-- gridOptions may be loaded from file paths or strings
-- gridReturn is now a @dataclass with rowIndex added to selected_rows, (previous version returned only the selected data, now you can know which row was selected)
-- Changed GridReturnMode behavior. Now update_on accepts a list of gridEvents that will trigger a streamlit refresh, making it possible to subscribe to any [gridEvent](https://www.ag-grid.com/javascript-data-grid/grid-events/).
-- Removed dot-env and simplejson dependencies.
-- Other smaller fixes and typos corrections.
-
-Version 0.2.3
-
-- small fixes
-- Merged PR #44 and #25 (thanks [msabramo](https://github.com/msabramo) and [ljnsn](https://github.com/ljnsn))
-- Merged PR #58 - allow nesting dataframes. Included an example in exampes folder.
-
-Version 0.2.2
-
-- Updated frontend dependencies to latest version
-- Corrected text color for better viz when using streamlit theme (thanks [jasonpmcculloch](https://github.com/jasonpmcculloch))
-- Switched default theme to Balham Light ('light'), if you want to use streamlit theme set `theme='streamlit'` on agGrid call
-
-Version 0.2.0
-
-- Support Themes
-- Incorporated Pull Requests with fixes and pre-select rows (Thanks [randomseed42](https://github.com/randomseed42) and [msabramo](https://github.com/msabramo))
-- You can use strings instead of importing GridUpdateMode and DataReturnMode enumerators
-- it works fine with st.forms!
-- new theme example in example folder
-
-Version 0.1.9
-
-- Small fixes
-- Organized examples folder
-
-Version 0.1.8
-
-- Fixes a bug that breaks the grid when NaN or Inf values are present in the data
-
-Version 0.1.7
-
-- Fixes a bug that happened when converting data back from the grid with only one row
-- Added license_key parameter on AgGrid call.
-
-Version 0.1.6
-
-- Fixes issue [#3](https://github.com/PablocFonseca/streamlit-aggrid/issues/3)
-- Adds support for timedelta columns check [example][share_link]
-
-Version 0.1.5
-
-- small bug fixes
-- there is an option to avoid grid re-initialization on app update (check fixed_key_example.py on examples folder or [here](https://share.streamlit.io/pablocfonseca/streamlit-aggrid/main/examples/fixed_key_example.py))
-
-Version 0.1.3
-
-- Fixed bug where cell was blank after edition.
-- Added enable_enterprise_modules argument to AgGrid call for enabling/disabling [enterprise features](https://www.ag-grid.com/documentation/javascript/licensing/)
-- It is now possible to inject js functions on gridOptions. Enabling advanced customizations such as conditional formatting (check 4<sup>th</sup> column on the [example](share_link))
-
-Version 0.1.2
-
-- added customCurrencyFormat as column type
-
-Version 0.1.0:
-
-- I worked a little bit more on making the example app functional.
-- Couple configuration options for update mode (How frontend updates streamlit) and for data returns (grid should return data filtered? Sorted?)
-- Some basic level of row selection
-- Added some docstrings specially on gridOptionsBuilder methods
-- Lacks performance for production. JS Client code is slow...
-
-[share_badge]: https://static.streamlit.io/badges/streamlit_badge_black_white.svg
-[share_link]: https://staggrid-examples.streamlit.app/
-[github_badge]: https://badgen.net/badge/icon/GitHub?icon=github&color=black&label
-[github_link]: https://github.com/PablocFonseca/streamlit-aggrid
-[pypi_badge]: https://badgen.net/pypi/v/streamlit-aggrid?icon=pypi&color=black&label?
-[pypi_link]: https://www.pypi.org/project/streamlit-aggrid/
-[downloads_badge]: https://img.shields.io/pypi/dm/streamlit-aggrid
-[downloads_link]: https://pypi.org/project/streamlit-aggrid/#files
+- ✅ **Fixed LinkHeaderComponent Implementation**: Resolved text wrapping issues in column headers
+- ✅ **Enhanced Auto-Width Logic**: Improved column width calculation and adjustment
+- ✅ **Simplified Build System**: Streamlined build process with better error handling
+- ✅ **Cross-Platform Support**: Improved Windows compatibility for build scripts
+- ✅ **Better Error Recovery**: Multiple fallback strategies for package building

@@ -33,6 +33,7 @@ import "@fontsource/source-sans-pro"
 import "./AgGrid.css"
 
 import GridToolBar from "./components/GridToolBar"
+import LinkHeaderComponent from "./components/LinkHeaderComponent"
 // import ManualUpdateButton from "./components/ManualUpdateButton"
 // import ManualDownloadButton from "./components/ManualDownloadButton"
 // import QuickSearch from "./components/QuickSearch"
@@ -142,6 +143,26 @@ class AgGrid extends React.Component<ComponentProps, State> {
       gridOptions.columnTypes || {},
       columnFormaters
     )
+
+    // 注册自定义innerHeaderComponent
+    if (!gridOptions.components) {
+      gridOptions.components = {};
+    }
+    gridOptions.components['linkHeaderComponent'] = LinkHeaderComponent;
+    console.log('Registered linkHeaderComponent:', LinkHeaderComponent);
+    console.log('GridOptions components:', gridOptions.components);
+    
+    // 确保组件被正确注册
+    if (typeof LinkHeaderComponent === 'function') {
+      console.log('LinkHeaderComponent is a valid function');
+    } else {
+      console.error('LinkHeaderComponent is not a valid function:', typeof LinkHeaderComponent);
+    }
+    
+    // 强制包含组件，防止tree-shaking
+    (window as any).LinkHeaderComponent = LinkHeaderComponent;
+    
+
 
     //processTheming
     this.themeParser = new ThemeParser()

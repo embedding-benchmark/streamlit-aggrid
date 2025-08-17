@@ -211,3 +211,28 @@ test/screenshots
 output.txt
 test/issues/*
 test/src_original/*
+
+########################################################################
+# Project specific
+########################################################################
+# Build artifacts
+sdk_output/
+*.whl
+*.tar.gz
+
+# Test files
+test_wheel_functionality.py
+test_env/
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.cursor/
+
+# Streamlit cache
+.streamlit/
+
+# Test data
+test_streamlit_app.py
