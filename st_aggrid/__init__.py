@@ -11,6 +11,12 @@ from st_aggrid.shared import (
     StAggridTheme,
 )
 from st_aggrid.AgGridReturn import AgGridReturn
+from st_aggrid.link_header_builder import (
+    LinkHeaderBuilder,
+    create_link_column,
+    create_link_columns,
+    add_link_headers_to_grid_options,
+)
 
 __all__ = [
     "AgGrid",
@@ -24,4 +30,8 @@ __all__ = [
     "AgGridTheme",
     "ExcelExportMode",
     "StAggridTheme",
+    "LinkHeaderBuilder",
+    "create_link_column",
+    "create_link_columns",
+    "add_link_headers_to_grid_options",
 ]
